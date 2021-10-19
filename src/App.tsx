@@ -1,10 +1,12 @@
-import { MouseEvent, useState } from "react";
+import { forwardRef, MouseEvent, useRef, useState } from "react";
 import styled from "styled-components";
+
+import { Map as NewMap } from "./components";
 
 const App = () => {
   return (
     <div>
-      <Viewer />
+      <NewMap />
     </div>
   );
 };
@@ -28,10 +30,9 @@ const Viewer = () => {
 
   const [distance, setDistance] = useState<number[]>([0, 0]);
 
-  const handleMouseDown = (
-    e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>
-  ) => {
-    console.log(e.clientX, e.clientY);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: MouseEvent) => {
     setStartPosition(() => [e.clientX, e.clientY]);
   };
 
@@ -40,6 +41,10 @@ const Viewer = () => {
       <pre>{JSON.stringify({ startPosition, distance }, null, 2)}</pre>
       <ViewerWrapper
         onMouseDown={handleMouseDown}
+        onMouseUp={(e) => {
+          console.log(e.clientX, e.clientY);
+          console.log(mapRef.current?.getBoundingClientRect());
+        }}
         onMouseMove={(e) => {
           setDistance(() => [
             startPosition[0] - e.clientX,
@@ -47,13 +52,13 @@ const Viewer = () => {
           ]);
         }}
       >
-        <Map />
+        <Map ref={mapRef} />
       </ViewerWrapper>
     </>
   );
 };
 
-const Map = () => {
+const Map = forwardRef<HTMLDivElement>((props, ref) => {
   const [position, setPosition] = useState<MapPosition>({
     left: 100,
     top: 100,
@@ -71,6 +76,7 @@ const Map = () => {
       </button>
       <MapWrapper
         position={{ left: position.left, top: position.top }}
+        ref={ref}
         size={size}
       >
         <Tag top={5} left={20} />
@@ -79,7 +85,7 @@ const Map = () => {
       </MapWrapper>
     </div>
   );
-};
+});
 
 interface MapWrapperProps {
   position: MapPosition;

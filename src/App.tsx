@@ -1,11 +1,11 @@
-import { Map as NewMap } from "./components";
+import { Map } from "@components";
 
 import { AppContainer } from "./Styles";
 
 const App = () => {
   return (
     <AppContainer.Wrapper>
-      <NewMap />
+      <Map />
     </AppContainer.Wrapper>
   );
 };

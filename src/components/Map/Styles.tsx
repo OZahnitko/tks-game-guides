@@ -1,4 +1,5 @@
 import styled, { css, keyframes } from "styled-components";
+import { sharedTheme } from "tks-component-library";
 
 import { Coordinate } from "./Map";
 
@@ -65,45 +66,36 @@ interface MapTagContainerProps {
   zoomLevel: number;
 }
 
-const pulse = (color: string) => keyframes`  0% {
+const pulse = (color: string) => keyframes`
+  0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 ${color};
+    box-shadow: 0 0 0 0 ${sharedTheme.utilities.color.hexToRgba(color, 0.7)};
   }
 
-  50% {
+  70% {
     transform: scale(1);
-    box-shadow: 0 0 0 10px ${color};
+    box-shadow: 0 0 0 10px ${sharedTheme.utilities.color.hexToRgba(color, 0)};
   }
 
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 ${color};
-  }`;
+    box-shadow: 0 0 0 0 ${sharedTheme.utilities.color.hexToRgba(color, 0)};
+  }
+`;
 
 const anim = (color: string, isEditMode: boolean) =>
   css`
-    animation: ${pulse(color)} ${isEditMode ? 0 : 2}s infinite;
+    animation: ${pulse(color.slice(1))} ${isEditMode ? 0 : 2}s infinite;
   `;
 
 export const MapTagContainer = {
   Wrapper: styled.div<MapTagContainerProps>`
-    ${(props) =>
-      anim(
-        (() =>
-          props.type === "rocket"
-            ? "orange"
-            : props.type === "upgrade"
-            ? "pink"
-            : "dodgerBlue")(),
-        props.isEditMode
-      )}
-
     background-color: ${(props) =>
       props.type === "rocket"
-        ? "orange"
+        ? "#FFA500"
         : props.type === "upgrade"
-        ? "pink"
-        : "dodgerBlue"};
+        ? "#FFC0CB"
+        : "#1E90FF"};
     border-radius: 50%;
 
     cursor: pointer;
@@ -115,8 +107,19 @@ export const MapTagContainer = {
     position: absolute;
 
     top: ${(props) => props.top}%;
+    transform: scale(1);
 
     width: ${(props) => (props.zoomLevel >= 2 ? "20" : "20")}px;
+
+    ${(props) =>
+      anim(
+        props.type === "rocket"
+          ? "#FFA500"
+          : props.type === "upgrade"
+          ? "#FFC0CB"
+          : "#1E90FF",
+        props.isEditMode
+      )}
   `,
 };
 

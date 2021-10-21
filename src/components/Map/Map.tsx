@@ -1,7 +1,16 @@
-import { MouseEvent, useRef, useState } from "react";
+import localForage from "localforage";
+import debounce from "lodash.debounce";
+import {
+  Dispatch,
+  MouseEvent,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+  WheelEvent,
+} from "react";
 
 import {
-  CursorLocationOverlayContainer,
   MapContainer,
   MapTagContainer,
   MapViewerContainer,
@@ -11,12 +20,9 @@ import {
 export type Coordinate = number | undefined;
 
 const Map = () => {
-  const [data, setData] = useState([
-    { id: 1, type: "energy", coordinates: [19.5, 24] },
-    { id: 2, type: "rocket", coordinates: [33.1, 30] },
-    { id: 3, type: "rocket", coordinates: [26.75, 43.5] },
-    { id: 4, type: "upgrade", coordinates: [28.6, 21.5] },
-  ]);
+  const [data, setData] = useState<
+    { id: number; type: string; coordinates: [number, number] }[]
+  >([]);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [mapStartingLocation, setMapStartingLocation] = useState<
     [Coordinate, Coordinate]
@@ -28,10 +34,7 @@ const Map = () => {
   const [mouseDownPosition, setMouseDownPosition] = useState<
     [Coordinate, Coordinate]
   >([undefined, undefined]);
-  const [mousePosition, setMousePosition] = useState<[Coordinate, Coordinate]>([
-    undefined,
-    undefined,
-  ]);
+
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
@@ -39,6 +42,18 @@ const Map = () => {
 
   const viewerContainer = useRef<HTMLDivElement | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
+
+  const [isRestartAnimation, setIsRestartAnimation] = useState<boolean>(false);
+
+  const getMapData = async () => {
+    const mapData = (await localForage.getItem("mapData")) as {
+      id: number;
+      type: string;
+      coordinates: [number, number];
+    }[];
+
+    setData(() => mapData);
+  };
 
   const handleClick = (e: MouseEvent) => {
     if (isEditMode && basicClick) {
@@ -48,6 +63,7 @@ const Map = () => {
           mapContainer.current?.getBoundingClientRect().left!) /
           1677) *
         100;
+
       const yPercentage =
         ((e.clientY - 10 - mapContainer.current?.getBoundingClientRect().top!) /
           696) *
@@ -64,6 +80,8 @@ const Map = () => {
           ],
         },
       ]);
+
+      setIsRestartAnimation(() => true);
     }
   };
 
@@ -81,7 +99,6 @@ const Map = () => {
 
   const handleMouseMove = (e: MouseEvent) => {
     setBasicClick(() => false);
-    setMousePosition(() => [e.clientX, e.clientY]);
     if (mouseDownPosition[0]) {
       setMapLocation(() => [
         mapStartingLocation[0]! + e.clientX - mouseDownPosition[0]!,
@@ -95,8 +112,27 @@ const Map = () => {
     setMouseDownPosition(() => [undefined, undefined]);
   };
 
+  const handleWheelScroll = (e: WheelEvent) => {
+    setZoomLevel((zoomLevel) =>
+      e.deltaY > 0 ? zoomLevel - 0.25 : zoomLevel + 0.25
+    );
+  };
+
+  const handleSaveToLocalStorage = () => {
+    localForage.setItem("mapData", data);
+  };
+
+  const handleMapTagClickCallback = (item: MapItemProps) => {
+    setData((data) => data.filter((i) => i.id !== item.id));
+  };
+
+  useEffect(() => {
+    getMapData();
+  }, []);
+
   return (
     <Wrapper>
+      <pre>{JSON.stringify({ isRestartAnimation }, null, 2)}</pre>
       <MapViewerContainer.Wrapper
         isEditMode={isEditMode}
         isMouseDown={isMouseDown}
@@ -105,6 +141,7 @@ const Map = () => {
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onWheel={debounce(handleWheelScroll, 25)}
         ref={viewerContainer}
       >
         <MapContainer.Wrapper
@@ -112,35 +149,21 @@ const Map = () => {
           ref={mapContainer}
           zoomLevel={zoomLevel}
         >
-          {isEditMode && (
-            <CursorLocationOverlay
-              height={
-                mousePosition[1]! -
-                  mapContainer.current?.getBoundingClientRect().top! || 0
-              }
-              width={
-                mousePosition[0]! -
-                  mapContainer.current?.getBoundingClientRect().left! || 0
-              }
-            />
+          {!isRestartAnimation ? (
+            data.map((item) => (
+              <MapTag
+                isEditMode={isEditMode}
+                item={item}
+                key={item.id}
+                onClick={handleMapTagClickCallback}
+                zoomLevel={zoomLevel}
+              />
+            ))
+          ) : (
+            <TagUpdater setIsRestartingAnimation={setIsRestartAnimation} />
           )}
-          {data.map((item) => (
-            <MapTag
-              isEditMode={isEditMode}
-              item={item}
-              key={item.id}
-              zoomLevel={zoomLevel}
-            />
-          ))}
         </MapContainer.Wrapper>
       </MapViewerContainer.Wrapper>
-
-      <button onClick={() => setZoomLevel((zoomLevel) => zoomLevel - 0.25)}>
-        -
-      </button>
-      <button onClick={() => setZoomLevel((zoomLevel) => zoomLevel + 0.25)}>
-        +
-      </button>
       <button
         onClick={() => {
           setMapLocation(() => [0, 0]);
@@ -156,6 +179,7 @@ const Map = () => {
       >
         Toggle Edit Mode
       </button>
+      <button onClick={handleSaveToLocalStorage}>Save</button>
     </Wrapper>
   );
 };
@@ -171,14 +195,21 @@ interface MapItemProps {
 interface MapTagProps {
   isEditMode: boolean;
   item: MapItemProps;
+  onClick: (item: MapItemProps) => void;
   zoomLevel: number;
 }
 
-export const MapTag = ({ isEditMode, item, zoomLevel }: MapTagProps) => {
+export const MapTag = ({
+  isEditMode,
+  item,
+  onClick,
+  zoomLevel,
+}: MapTagProps) => {
   return (
     <MapTagContainer.Wrapper
       isEditMode={isEditMode}
       left={item.coordinates[0]}
+      onClick={() => onClick(item)}
       top={item.coordinates[1]}
       type={item.type}
       zoomLevel={zoomLevel}
@@ -186,14 +217,13 @@ export const MapTag = ({ isEditMode, item, zoomLevel }: MapTagProps) => {
   );
 };
 
-interface CursorLocationOverlayProps {
-  height: number;
-  width: number;
+interface TagUpdaterProps {
+  setIsRestartingAnimation: Dispatch<SetStateAction<boolean>>;
 }
 
-const CursorLocationOverlay = ({
-  height,
-  width,
-}: CursorLocationOverlayProps) => (
-  <CursorLocationOverlayContainer.Wrapper height={height} width={width} />
-);
+const TagUpdater = ({ setIsRestartingAnimation }: TagUpdaterProps) => {
+  useEffect(() => {
+    setIsRestartingAnimation(() => false);
+  }, []);
+  return <></>;
+};

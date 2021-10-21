@@ -6,6 +6,8 @@ import { Coordinate } from "./Map";
 export const Wrapper = styled.div`
   align-items: center;
 
+  border: 10px solid yellow;
+
   display: flex;
 
   flex-direction: column;
@@ -27,13 +29,13 @@ export const MapViewerContainer = {
     cursor: ${(props) =>
       props.isMouseDown ? "grabbing" : props.isEditMode ? "pointer" : "grab"};
 
-    height: 50%;
+    height: 100%;
 
     overflow: hidden;
 
     position: relative;
 
-    width: 50%;
+    width: 100%;
   `,
 };
 

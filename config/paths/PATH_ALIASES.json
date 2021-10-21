@@ -1,1 +1,8 @@
-[{"name":"@components","path":"components"},{"name":"@contracts","path":"contracts"},{"name":"@hooks","path":"hooks"},{"name":"@store","path":"store"},{"name":"@utility","path":"utility"}]
+[
+  { "name": "@components", "path": "components" },
+  { "name": "@contracts", "path": "contracts" },
+  { "name": "@data", "path": "data" },
+  { "name": "@hooks", "path": "hooks" },
+  { "name": "@store", "path": "store" },
+  { "name": "@utility", "path": "utility" }
+]

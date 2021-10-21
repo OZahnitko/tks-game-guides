@@ -5,7 +5,8 @@
   "scripts": {
     "prestart": "node ./config/paths/aliasPaths.js",
     "start": "REACT_APP_ENVIRONMENT=development react-app-rewired start",
-    "build": "react-scripts build",
+    "build": "REACT_APP_ENVIRONMENT=production react-app-rewired build",
+    "build:run": "yarn build && yarn serve -n -s dist",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -29,7 +30,8 @@
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.6",
-    "@types/styled-components": "^5.1.15"
+    "@types/styled-components": "^5.1.15",
+    "serve": "^12.0.1"
   },
   "browserslist": {
     "production": [

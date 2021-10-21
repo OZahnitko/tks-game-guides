@@ -52,7 +52,7 @@ const Map = () => {
       coordinates: [number, number];
     }[];
 
-    setData(() => mapData);
+    setData(() => mapData || []);
   };
 
   const handleClick = (e: MouseEvent) => {

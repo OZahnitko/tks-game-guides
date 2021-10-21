@@ -4,9 +4,9 @@ import { AppContainer } from "./Styles";
 
 const App = () => {
   return (
-    <AppContainer.Wrapper>
+    <AppContainer.RootWrapper>
       <Map />
-    </AppContainer.Wrapper>
+    </AppContainer.RootWrapper>
   );
 };
 

@@ -1,14 +1,17 @@
-import localForage from "localforage";
 import debounce from "lodash.debounce";
 import {
   Dispatch,
   MouseEvent,
   SetStateAction,
+  useCallback,
   useEffect,
   useRef,
   useState,
   WheelEvent,
 } from "react";
+import { v4 as uuid4 } from "uuid";
+
+import { useAppHooks, useMapHooks, useTagHooks } from "@hooks";
 
 import {
   MapContainer,
@@ -16,200 +19,218 @@ import {
   MapViewerContainer,
   Wrapper,
 } from "./Styles";
-
-export type Coordinate = number | undefined;
+import { Coordinates, MapItemProps, MapTagProps } from "./types";
 
 const Map = () => {
-  const [data, setData] = useState<
-    { id: number; type: string; coordinates: [number, number] }[]
-  >([]);
-  const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [mapStartingLocation, setMapStartingLocation] = useState<
-    [Coordinate, Coordinate]
-  >([0, 0]);
-  const [mapLocation, setMapLocation] = useState<[Coordinate, Coordinate]>([
-    0,
-    0,
+  const [isBasicClick, setIsBasicClick] = useState<boolean>(true);
+  const [isLocalEditMode, setIsLocalEditMode] = useState<boolean>(false);
+  const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
+  const [isRestartingAnimation, setIsRestartingAnimation] = useState<boolean>(
+    false
+  );
+  const [mapLocation, setMapLocation] = useState<Coordinates>([0, 0]);
+  const [mapStartingLocation, setMapStartingLocation] = useState<Coordinates>([
+    undefined,
+    undefined,
   ]);
-  const [mouseDownPosition, setMouseDownPosition] = useState<
-    [Coordinate, Coordinate]
-  >([undefined, undefined]);
-
+  const [mapTags, setMapTags] = useState<MapItemProps[]>([]);
+  const [mouseDownPosition, setMouseDownPosition] = useState<Coordinates>([
+    undefined,
+    undefined,
+  ]);
+  const [viewerDimensions, setViewerDimensions] = useState<Coordinates>([
+    undefined,
+    undefined,
+  ]);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
-  const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
-  const [basicClick, setBasicClick] = useState<boolean>(true);
+  const { setIsEditMode } = useAppHooks();
+  const { maps, selectedMap, setSelectedMap } = useMapHooks();
+  const { selectedTagType } = useTagHooks();
 
-  const viewerContainer = useRef<HTMLDivElement | null>(null);
-  const mapContainer = useRef<HTMLDivElement | null>(null);
-
-  const [isRestartAnimation, setIsRestartAnimation] = useState<boolean>(false);
-
-  const getMapData = async () => {
-    const mapData = (await localForage.getItem("mapData")) as {
-      id: number;
-      type: string;
-      coordinates: [number, number];
-    }[];
-
-    setData(() => mapData || []);
-  };
+  const mapContainerWrapperRef = useRef<HTMLDivElement>(null);
+  const mapViewerContainerWrapper = useRef<HTMLDivElement>(null);
 
   const handleClick = (e: MouseEvent) => {
-    if (isEditMode && basicClick) {
-      const xPercentage =
-        ((e.clientX -
-          10 -
-          mapContainer.current?.getBoundingClientRect().left!) /
-          1677) *
-        100;
+    if (isBasicClick && isLocalEditMode) {
+      const mapPosition = mapContainerWrapperRef.current?.getBoundingClientRect();
 
-      const yPercentage =
-        ((e.clientY - 10 - mapContainer.current?.getBoundingClientRect().top!) /
-          696) *
-        100;
+      const xPercentage = ((e.clientX - 10 - mapPosition?.left!) / 1677) * 100;
 
-      setData((data) => [
-        ...data,
+      const yPercentage = ((e.clientY - 10 - mapPosition?.top!) / 696) * 100;
+
+      setMapTags((mapTags) => [
+        ...mapTags,
         {
-          id: data.length + 1,
-          type: "rocket",
           coordinates: [
             Math.round((xPercentage + Number.EPSILON) * 100) / 100 / zoomLevel,
             Math.round((yPercentage + Number.EPSILON) * 100) / 100 / zoomLevel,
           ],
+          id: uuid4(),
+          type: selectedTagType || "rocket",
         },
       ]);
+    }
+  };
 
-      setIsRestartAnimation(() => true);
+  const handleKeyboardInput = (e: globalThis.KeyboardEvent) => {
+    if (e.key === "e") {
+      setIsLocalEditMode((isLocalEditMode) => {
+        if (isLocalEditMode) setIsRestartingAnimation(() => true);
+
+        return !isLocalEditMode;
+      });
     }
   };
 
   const handleMouseDown = (e: MouseEvent) => {
+    setIsBasicClick(() => true);
     setIsMouseDown(() => true);
-    setBasicClick(() => true);
     setMouseDownPosition(() => [e.clientX, e.clientY]);
     setMapStartingLocation(() => [mapLocation[0], mapLocation[1]]);
   };
 
   const handleMouseLeave = () => {
     setIsMouseDown(() => false);
-    setMouseDownPosition(() => [undefined, undefined]);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    setBasicClick(() => false);
-    if (mouseDownPosition[0]) {
-      setMapLocation(() => [
-        mapStartingLocation[0]! + e.clientX - mouseDownPosition[0]!,
-        mapStartingLocation[1]! + e.clientY - mouseDownPosition[1]!,
-      ]);
-    }
-  };
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (isMouseDown) {
+        setIsBasicClick(() => false);
+
+        if (selectedMap?.dimensions[1]! * zoomLevel < viewerDimensions[0]!) {
+          setMapLocation(() => [
+            Math.min(
+              Math.max(
+                mapStartingLocation[0]! + e.clientX - mouseDownPosition[0]!,
+                viewerDimensions[1]! - selectedMap?.dimensions[0]! * zoomLevel
+              ),
+              0
+            ),
+            0,
+          ]);
+          return;
+        } else {
+          setMapLocation(() => [
+            Math.min(
+              Math.max(
+                mapStartingLocation[0]! + e.clientX - mouseDownPosition[0]!,
+                viewerDimensions[1]! - selectedMap?.dimensions[0]! * zoomLevel
+              ),
+              0
+            ),
+            Math.min(
+              Math.max(
+                mapStartingLocation[1]! + e.clientY - mouseDownPosition[1]!,
+                viewerDimensions[0]! - selectedMap?.dimensions[1]! * zoomLevel
+              ),
+              0
+            ),
+          ]);
+        }
+      }
+    },
+    [isMouseDown, viewerDimensions, zoomLevel]
+  );
 
   const handleMouseUp = () => {
     setIsMouseDown(() => false);
-    setMouseDownPosition(() => [undefined, undefined]);
   };
 
-  const handleWheelScroll = (e: WheelEvent) => {
+  const handleWheelScroll = (e: WheelEvent) =>
     setZoomLevel((zoomLevel) =>
-      e.deltaY > 0 ? zoomLevel - 0.25 : zoomLevel + 0.25
+      e.deltaY > 0
+        ? zoomLevel <= 0.75
+          ? zoomLevel
+          : zoomLevel - 0.25
+        : zoomLevel >= 5
+        ? zoomLevel
+        : zoomLevel + 0.25
     );
-  };
 
-  const handleSaveToLocalStorage = () => {
-    localForage.setItem("mapData", data);
-  };
-
-  const handleMapTagClickCallback = (item: MapItemProps) => {
-    setData((data) => data.filter((i) => i.id !== item.id));
+  const removeTag = (tag: MapItemProps) => {
+    setMapTags((mapTags) => mapTags.filter((t) => t.id !== tag.id));
   };
 
   useEffect(() => {
-    getMapData();
+    window.addEventListener("keypress", handleKeyboardInput);
+    return () => {
+      window.removeEventListener("keypress", handleKeyboardInput);
+    };
   }, []);
+
+  useEffect(() => {
+    setIsEditMode(isLocalEditMode);
+  }, [isLocalEditMode]);
+
+  useEffect(() => {
+    setSelectedMap(maps[0]);
+  }, [maps]);
+
+  useEffect(() => {
+    if (selectedMap) {
+      if (mapViewerContainerWrapper.current) {
+        const dimensions = mapViewerContainerWrapper.current.getBoundingClientRect();
+        setViewerDimensions(() => [dimensions.height, dimensions.width]);
+      }
+    }
+  }, [selectedMap]);
 
   return (
     <Wrapper>
-      <pre>{JSON.stringify({ isRestartAnimation }, null, 2)}</pre>
-      <MapViewerContainer.Wrapper
-        isEditMode={isEditMode}
-        isMouseDown={isMouseDown}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeave}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onWheel={debounce(handleWheelScroll, 25)}
-        ref={viewerContainer}
-      >
-        <MapContainer.Wrapper
-          mapLocation={mapLocation}
-          ref={mapContainer}
-          zoomLevel={zoomLevel}
+      {selectedMap && (
+        <MapViewerContainer.Wrapper
+          isEditMode={isLocalEditMode}
+          isMouseDown={isMouseDown}
+          onClick={handleClick}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onWheel={debounce(handleWheelScroll, 25)}
+          ref={mapViewerContainerWrapper}
         >
-          {!isRestartAnimation ? (
-            data.map((item) => (
-              <MapTag
-                isEditMode={isEditMode}
-                item={item}
-                key={item.id}
-                onClick={handleMapTagClickCallback}
-                zoomLevel={zoomLevel}
-              />
-            ))
-          ) : (
-            <TagUpdater setIsRestartingAnimation={setIsRestartAnimation} />
-          )}
-        </MapContainer.Wrapper>
-      </MapViewerContainer.Wrapper>
-      <button
-        onClick={() => {
-          setMapLocation(() => [0, 0]);
-          setZoomLevel(() => 1);
-          setIsEditMode(() => false);
-        }}
-      >
-        reset
-      </button>
-      <button
-        onClick={() => setIsEditMode((isEditMode) => !isEditMode)}
-        style={{ color: isEditMode ? "red" : "blue" }}
-      >
-        Toggle Edit Mode
-      </button>
-      <button onClick={handleSaveToLocalStorage}>Save</button>
+          <MapContainer.Wrapper
+            backgroundProps={{
+              dimensions: [
+                selectedMap.dimensions[0],
+                selectedMap.dimensions[1],
+              ],
+              url: selectedMap.url,
+            }}
+            mapLocation={mapLocation}
+            ref={mapContainerWrapperRef}
+            zoomLevel={zoomLevel}
+          >
+            {isRestartingAnimation ? (
+              <TagUpdater setIsRestartingAnimation={setIsRestartingAnimation} />
+            ) : (
+              mapTags.map((tag) => (
+                <MapTag
+                  isEditMode={isLocalEditMode}
+                  item={tag}
+                  key={tag.id}
+                  callback={removeTag}
+                  zoomLevel={zoomLevel}
+                />
+              ))
+            )}
+          </MapContainer.Wrapper>
+        </MapViewerContainer.Wrapper>
+      )}
     </Wrapper>
   );
 };
 
 export default Map;
 
-interface MapItemProps {
-  id: number;
-  type: string;
-  coordinates: number[];
-}
-
-interface MapTagProps {
-  isEditMode: boolean;
-  item: MapItemProps;
-  onClick: (item: MapItemProps) => void;
-  zoomLevel: number;
-}
-
-export const MapTag = ({
-  isEditMode,
-  item,
-  onClick,
-  zoomLevel,
-}: MapTagProps) => {
+const MapTag = ({ callback, isEditMode, item, zoomLevel }: MapTagProps) => {
   return (
     <MapTagContainer.Wrapper
       isEditMode={isEditMode}
       left={item.coordinates[0]}
-      onClick={() => onClick(item)}
+      onClick={() => callback(item)}
       top={item.coordinates[1]}
       type={item.type}
       zoomLevel={zoomLevel}

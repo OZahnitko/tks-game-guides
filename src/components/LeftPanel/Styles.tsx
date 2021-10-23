@@ -10,6 +10,8 @@ export const Wrapper = styled.div`
 
   height: 100%;
 
+  padding-bottom: 1.25rem;
+
   width: 100%;
 `;
 
@@ -20,8 +22,6 @@ export const TopSection = {
     text-align: center;
   `,
   MapContainer: styled.div`
-    padding: 0 2.5rem 2.5rem 2.5rem;
-
     flex: 1;
   `,
   Wrapper: styled.div`
@@ -29,6 +29,14 @@ export const TopSection = {
 
     flex-direction: column;
 
-    height: 50%;
+    height: calc(100% / 3 * 3);
+  `,
+};
+
+// Bottom Section
+
+export const BottomSection = {
+  Wrapper: styled.div`
+    flex: 1;
   `,
 };

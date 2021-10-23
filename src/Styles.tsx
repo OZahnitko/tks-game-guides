@@ -1,23 +1,10 @@
 import styled from "styled-components";
 
-export const AppContainer = {
-  LeftPanelContainer: styled.div`
-    height: 100%;
+export const RootWrapper = styled.div`
+  display: grid;
 
-    padding: 2.5rem 1.25rem 2.5rem 2.5rem;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
 
-    width: 50%;
-  `,
-  RightPanelContainer: styled.div`
-    height: 100%;
-
-    padding: 2.5rem 2.5rem 2.5rem 1.25rem;
-
-    width: 50%;
-  `,
-  RootWrapper: styled.div`
-    display: flex;
-
-    height: 100%;
-  `,
-};
+  height: 100%;
+`;

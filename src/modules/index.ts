@@ -1,3 +1,6 @@
 export * from "./MapControlsModule";
 export * from "./MapModule";
-export * from "./ModulePositioningModule";
+
+export * from "./ProgressionModule";
+
+export * from "./WalkthroughModule";

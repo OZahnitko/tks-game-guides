@@ -1,19 +1,39 @@
 import {
   MapControlsModule,
   MapModule,
-  ModulePositioningModule,
+  ProgressionModule,
+  WalkthroughModule,
 } from "@modules";
 
-import { RootWrapper } from "./Styles";
+import { RootWrapper, Underlay as UND } from "./Styles";
 
 const App = () => {
   return (
     <RootWrapper>
+      {false && <Underlay />}
       <MapModule />
       <MapControlsModule />
-      <ModulePositioningModule />
+      <ProgressionModule />
+      <WalkthroughModule />
     </RootWrapper>
   );
 };
 
 export default App;
+
+const Underlay = () => (
+  <UND.Wrapper>
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+    <UND.Child />
+  </UND.Wrapper>
+);

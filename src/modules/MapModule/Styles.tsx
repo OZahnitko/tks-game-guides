@@ -1,15 +1,19 @@
 import styled from "styled-components";
 
 interface WrapperProps {
-  horizontalSize: number;
-  verticalSize: number;
+  root: { x: number; y: number };
+  size: { height: number; width: number };
 }
 
 export const Wrapper = styled.div<WrapperProps>`
-  border: 10px solid red;
+  background-color: white;
 
-  grid-column: span ${(props) => props.horizontalSize.toString()};
-  grid-row: span ${(props) => props.verticalSize.toString()};
+  grid-column: ${(props) => props.root.x} / span ${(props) => props.size.width};
+  grid-row: ${(props) => props.root.y} / span ${(props) => props.size.height};
+
+  overflow: hidden;
+
+  padding: 1rem;
 
   user-select: none;
 `;

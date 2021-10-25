@@ -14,28 +14,8 @@ export const RootWrapper = styled.div`
   overflow: hidden;
 
   padding: 0.5rem;
+
+  position: absolute;
+
+  width: 100%;
 `;
-
-export const Underlay = {
-  Child: styled.div`
-    border: 1px solid black;
-
-    height: 100%;
-
-    width: 100%;
-  `,
-  Wrapper: styled.div`
-    display: grid;
-
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-
-    height: 100%;
-
-    position: absolute;
-
-    width: 100%;
-
-    z-index: -1;
-  `,
-};

@@ -1,1 +1,1 @@
-{"compilerOptions":{"baseUrl":"../../src","paths":{"@hooks":["./hooks"],"@modules":["./modules"]}}}
+{"compilerOptions":{"baseUrl":"../../src","paths":{"@data":["./data"],"@hooks":["./hooks"],"@modules":["./modules"],"@store":["./store"],"@utilities":["./utilities"]}}}

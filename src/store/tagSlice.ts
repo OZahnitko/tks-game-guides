@@ -19,6 +19,10 @@ export const tagSlice = createSlice({
         return state;
       }
     },
+    removeCollectedTag: (state, { payload }: PayloadAction<string>) => ({
+      ...state,
+      collectedTags: state.collectedTags.filter((tag) => tag !== payload),
+    }),
     setCollectedTags: (state, { payload }: PayloadAction<string[]>) => ({
       ...state,
       collectedTags: payload,
@@ -32,6 +36,7 @@ export const tagSlice = createSlice({
 
 export const {
   addCollectedTag,
+  removeCollectedTag,
   setCollectedTags,
   setSelectedTag,
 } = tagSlice.actions;

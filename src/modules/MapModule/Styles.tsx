@@ -66,6 +66,7 @@ export const MapContainer = {
 
 // Map Tag
 interface MapTagContainerWrapperProps {
+  active: boolean;
   tag: { id: string; location: number[] };
   zoomLevel: number;
 }
@@ -78,7 +79,7 @@ const pulse = (color: string) => keyframes`
 
   70% {
     transform: scale(1);
-    box-shadow: 0 0 0 10px ${sharedTheme.utilities.color.hexToRgba(color, 0)};
+    box-shadow: 0 0 0 15px ${sharedTheme.utilities.color.hexToRgba(color, 0)};
   }
 
   100% {
@@ -89,12 +90,15 @@ const pulse = (color: string) => keyframes`
 
 const anim = (color: string, isEditMode: boolean) =>
   css`
-    animation: ${pulse(color.slice(1))} ${isEditMode ? 0 : 2}s infinite;
+    animation: ${pulse(color.slice(1))} ${isEditMode ? 0 : 1.5}s infinite;
   `;
 
 export const MapTagContainer = {
   Wrapper: styled.div<MapTagContainerWrapperProps>`
-    background-color: #d9042b;
+    background-color: ${(props) =>
+      props.active
+        ? "#D9042B"
+        : `${sharedTheme.utilities.color.hexToRgba("D9042B", 0.5)}`};
 
     border-radius: 50%;
 
@@ -110,6 +114,6 @@ export const MapTagContainer = {
 
     width: 20px;
 
-    ${() => anim("#D9042B", false)}
+    ${(props) => props.active && anim("#D9042B", false)}
   `,
 };

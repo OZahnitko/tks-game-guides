@@ -1,5 +1,10 @@
 import { useAppDispatch, useAppSelector } from "@hooks";
-import { addCollectedTag, setCollectedTags, setSelectedTag } from "@store";
+import {
+  addCollectedTag,
+  removeCollectedTag,
+  setCollectedTags,
+  setSelectedTag,
+} from "@store";
 
 export const useTagHooks = () => {
   const dispatch = useAppDispatch();
@@ -10,6 +15,8 @@ export const useTagHooks = () => {
     collectedTags: useAppSelector(
       ({ tag: { collectedTags } }) => collectedTags
     ),
+    removeCollectedTag: (collectedTag: string) =>
+      dispatch(removeCollectedTag(collectedTag)),
     setCollectedTags: (collectedTags: string[]) =>
       dispatch(setCollectedTags(collectedTags)),
     selectedTag: useAppSelector(({ tag: { selectedTag } }) => selectedTag),

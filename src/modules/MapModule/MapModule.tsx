@@ -7,9 +7,11 @@ import {
   useState,
   WheelEvent,
 } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import { data } from "@data";
 import { useGameHooks, useTagHooks } from "@hooks";
+import { addCollectible, getGameData, saveGameData } from "@utilities";
 
 import {
   MapContainer,
@@ -22,7 +24,7 @@ const MapModule = () => {
   const [root] = useState<{ x: number; y: number }>({ x: 1, y: 1 });
   const [size] = useState<{ height: number; width: number }>({
     height: 2,
-    width: 2,
+    width: 3,
   });
 
   const [isBasicClick, setIsBasicClick] = useState<boolean>(true);
@@ -39,6 +41,7 @@ const MapModule = () => {
           id: string;
           location: number[];
           requirements: string[];
+          type: string;
         }[];
         dimensions: number[];
         url: string;
@@ -83,6 +86,38 @@ const MapModule = () => {
       if (mapContainerRef.current) {
         const mapContainerLocation = mapContainerRef.current.getBoundingClientRect();
         if (isBasicClick) {
+          const id = uuidv4();
+          addCollectible(
+            {
+              id,
+              location: [
+                (e.clientX - mapContainerLocation.x) / zoomLevel,
+                (e.clientY - mapContainerLocation.y) / zoomLevel,
+              ],
+              requirements: ["rocket boots"],
+              type: "rocket",
+            },
+            selectedGame!,
+            selectedMap!
+          );
+          setMapData((mapData) => {
+            return {
+              collectibles: [
+                ...mapData?.collectibles!,
+                {
+                  id,
+                  location: [
+                    (e.clientX - mapContainerLocation.x) / zoomLevel,
+                    (e.clientY - mapContainerLocation.y) / zoomLevel,
+                  ],
+                  requirements: ["rocket boots"],
+                  type: "rocket",
+                },
+              ],
+              dimensions: mapData?.dimensions!,
+              url: mapData?.url!,
+            };
+          });
           console.log(
             (e.clientX - mapContainerLocation.x) / zoomLevel,
             (e.clientY - mapContainerLocation.y) / zoomLevel
@@ -90,7 +125,13 @@ const MapModule = () => {
         }
       }
     },
-    [isBasicClick, mapContainerRef.current, zoomLevel]
+    [
+      isBasicClick,
+      mapContainerRef.current,
+      selectedGame,
+      selectedMap,
+      zoomLevel,
+    ]
   );
 
   const handleMouseDown = useCallback(
@@ -282,14 +323,6 @@ const MapModule = () => {
   );
 
   useEffect(() => {
-    setMapData(() =>
-      data.games
-        .find((game) => game.id === selectedGame)
-        ?.data.maps.find((map) => map.id === selectedMap)
-    );
-  }, [selectedGame, selectedMap]);
-
-  useEffect(() => {
     if (viewerRef.current) {
       const targetDimensions = viewerRef.current.getBoundingClientRect();
       setViewerDimensions(() => ({
@@ -304,6 +337,34 @@ const MapModule = () => {
       centerMap(mapData, viewerDimensions, zoomLevel);
     }
   }, [mapData, viewerDimensions]);
+
+  const checkLSGameData = async (selectedGame: string) => {
+    const gameLSData = await getGameData(selectedGame);
+
+    console.log(gameLSData);
+
+    if (!gameLSData) {
+      const targetGameData = data.games.find(
+        (game) => game.id === selectedGame
+      );
+      if (targetGameData) {
+        saveGameData(targetGameData!);
+        setMapData(() =>
+          targetGameData.data.maps.find((map) => map.id === selectedMap)
+        );
+      }
+    } else {
+      setMapData(() =>
+        gameLSData?.data.maps.find((map) => map.id === selectedMap)
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (selectedGame && selectedMap) {
+      checkLSGameData(selectedGame);
+    }
+  }, [selectedGame, selectedMap]);
 
   return (
     <Wrapper root={root} size={size}>
@@ -352,15 +413,16 @@ const MapModule = () => {
 export default MapModule;
 
 interface MapTagProps {
-  tag: { id: string; location: number[] };
+  tag: { id: string; location: number[]; type: string };
   zoomLevel: number;
 }
 
 const MapTag = ({ tag, zoomLevel }: MapTagProps) => {
-  const { setSelectedTag } = useTagHooks();
+  const { collectedTags, setSelectedTag } = useTagHooks();
 
   return (
     <MapTagContainer.Wrapper
+      active={!collectedTags.includes(tag.id)}
       onClick={() => setSelectedTag(tag.id)}
       tag={tag}
       zoomLevel={zoomLevel}

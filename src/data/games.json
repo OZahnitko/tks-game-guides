@@ -6,9 +6,15 @@
         {
           "collectibles": [
             {
+              "guide": [
+                {
+                  "imageUrl": "https://img.game8.co/3429530/a9ca8596270c522ca394b8961ff3438c.jpeg/original",
+                  "text": "Use the Speed Booster to break the blocks, then shoot the floor blocks to get this item."
+                }
+              ],
               "id": "db171934-0e5e-437f-9c30-51465027a9ac",
               "location": [800.6, 333.465625],
-              "requirements": [],
+              "requirements": ["speed booster"],
               "type": "rocket"
             },
             {
@@ -43,7 +49,7 @@
                   "text": "Use the screw attack to break the blocks."
                 }
               ],
-              "id": "1",
+              "id": "d93515a2-e455-4b1b-b99a-9caa30aab9d5",
               "location": [39, 471.7760416666667],
               "requirements": ["screw attack"],
               "type": "rocket"
@@ -55,8 +61,32 @@
                   "text": "Found in the room after the Chozo Soldier after Artaria is frozen."
                 }
               ],
-              "id": "2",
+              "id": "6feba9ba-5581-430c-9d42-aae2a8f65f6f",
               "location": [284.35714285714283, 513.0491071428571],
+              "requirements": ["gravity suit"],
+              "type": "rocket"
+            },
+            {
+              "guide": [
+                {
+                  "imageUrl": "https://img.game8.co/3432240/78b8d16a2cb7a1a35b55ed5b616f5e9c.gif/original",
+                  "text": "Charge your Shinespark at the hallway below. Once charged, jump up and turn into a morph ball. Activate your Shinespark going to the right to access the Missile+ Tank."
+                }
+              ],
+              "id": "2a5a7439-1bc0-4ff5-a103-8954f376bcef",
+              "location": [498.6, 602.934375],
+              "requirements": ["speed booster"],
+              "type": "rocket"
+            },
+            {
+              "guide": [
+                {
+                  "imageUrl": "https://img.game8.co/3430330/907e3030adb6649702d74fb5f564535b.jpeg/original",
+                  "text": "After returning to Artaria with the Gravity Suit, follow the path straight and jump to the platform."
+                }
+              ],
+              "id": "1aa5830a-b2a1-4801-b3b7-b5e8135e956d",
+              "location": [202.8, 471.465625],
               "requirements": ["gravity suit"],
               "type": "rocket"
             }

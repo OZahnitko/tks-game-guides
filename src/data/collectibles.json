@@ -1,0 +1,15 @@
+[
+  {
+    "guide": [
+      {
+        "imageUrl": "https://img.game8.co/3429530/a9ca8596270c522ca394b8961ff3438c.jpeg/original",
+        "text": "Use the Speed Booster to break the blocks, then shoot the floor blocks to get this item."
+      }
+    ],
+    "id": "db171934-0e5e-437f-9c30-51465027a9ac",
+    "location": { "x": 800.6, "y": 333.465625 },
+    "mapId": "96d82660-6765-442f-8599-d6aa54cfe094",
+    "requirements": ["speed booster"],
+    "type": "rocket"
+  }
+]

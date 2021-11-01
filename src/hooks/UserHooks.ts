@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 import { CollectibleId, SelectedGameId, SelectedMapId } from "@contracts";
 import { useAppDispatch, useAppSelector } from "@hooks";
@@ -16,8 +16,6 @@ export const useUserHooks = () => {
   );
 
   const dispatch = useAppDispatch();
-
-  useEffect(() => {}, [collectibles]);
 
   return {
     addCollectible: useCallback(

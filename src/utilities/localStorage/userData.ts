@@ -2,16 +2,16 @@ import localForage from "localforage";
 
 type Ability = string;
 
-type Collectible = string;
+type CollectibleId = string;
 
-type Game = string;
+type GameId = string;
 
-type Map = string;
+type MapId = string;
 
 interface UserData {
-  collectibles: Collectible[];
-  selectedGame: Game;
-  selectedMap: Map;
+  collectibles: CollectibleId[];
+  selectedGame: GameId;
+  selectedMap: MapId;
   abilities: Ability[];
 }
 
@@ -27,7 +27,7 @@ export const setUserData = async (userData: UserData) => {
 
 // Selected Game
 
-export const setSelectedGame = async (gameId: Game) => {
+export const setSelectedGame = async (gameId: GameId) => {
   const userData = (await getUserData()) as UserData;
 
   return await setUserData({ ...userData, selectedGame: gameId });
@@ -35,7 +35,7 @@ export const setSelectedGame = async (gameId: Game) => {
 
 // Selected Map
 
-export const setSelectedMap = async (mapId: Map) => {
+export const setSelectedMap = async (mapId: MapId) => {
   const userData = (await getUserData()) as UserData;
 
   return await setUserData({ ...userData, selectedMap: mapId });
@@ -43,7 +43,7 @@ export const setSelectedMap = async (mapId: Map) => {
 
 // Collectibles
 
-export const addCollectible = async (collectibleId: Collectible) => {
+export const addCollectible = async (collectibleId: CollectibleId) => {
   const userData = (await getUserData()) as UserData;
 
   if (userData.collectibles) {
@@ -61,7 +61,7 @@ export const addCollectible = async (collectibleId: Collectible) => {
   }
 };
 
-export const removeCollectible = async (collectibleId: Collectible) => {
+export const removeCollectible = async (collectibleId: CollectibleId) => {
   const userData = (await getUserData()) as UserData;
 
   return await setUserData({
